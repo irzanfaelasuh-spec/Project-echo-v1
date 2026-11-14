@@ -1,4 +1,3 @@
-
 package dev.trywonuf1.echoframe.overlay
 
 import android.content.Context
@@ -446,12 +445,3 @@ class LyricsOverlayView(context: Context) : View(context) {
 
     private fun dp(value: Float): Float = value * density
 }
-
-/*
- * Compatibility fallback:
- * If the OverlayStyle version compiled by Gradle does not expose
- * textSizeSp, use 24sp. If it does expose the member, the member
- * property takes precedence over this extension.
- */
-private val OverlayStyle.textSizeSp: Float
-    get() = 24f
