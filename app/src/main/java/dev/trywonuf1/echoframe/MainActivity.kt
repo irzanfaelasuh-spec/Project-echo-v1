@@ -84,6 +84,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.trywonuf1.echoframe.data.AppPrefs
+import dev.trywonuf1.echoframe.data.FontManager
 import dev.trywonuf1.echoframe.data.OverlayStyle
 import dev.trywonuf1.echoframe.media.PlaybackBus
 import dev.trywonuf1.echoframe.overlay.EchoRuntime
@@ -578,6 +579,22 @@ private fun SettingsScreen() {
     val context = LocalContext.current
     val prefs = remember { AppPrefs(context) }
     var style by remember { mutableStateOf(prefs.loadStyle()) }
+    var fontLabel by remember { mutableStateOf(FontManager.displayName(context)) }
+    var fontMessage by remember { mutableStateOf("") }
+    val fontPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            val result = runCatching { FontManager.importFont(context, uri) }
+            if (result.isSuccess) {
+                fontLabel = result.getOrNull() ?: "Custom font"
+                fontMessage = "Font imported successfully."
+                AppPrefs.notifyStyleChanged(context)
+            } else {
+                fontMessage = result.exceptionOrNull()?.message ?: "Could not import font."
+            }
+        }
+    }
 
     fun update(newStyle: OverlayStyle) {
         style = newStyle
@@ -594,7 +611,7 @@ private fun SettingsScreen() {
     ) {
         Text("02 / CUSTOMIZATION", color = Cyan, fontSize = 9.sp, letterSpacing = 1.8.sp)
         Text("Settings", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-        Text("Tune the way every lyric enters, floats and disappears.", color = Muted, fontSize = 12.sp)
+        Text("Customize lyric appearance, timing presentation, and playback behavior.", color = Muted, fontSize = 12.sp)
 
         SettingGroup("APPEARANCE") {
             ColorPickerRow("Text color", style.textColor) { update(style.copy(textColor = it)) }
@@ -605,15 +622,37 @@ private fun SettingsScreen() {
             SettingSlider("Glow intensity", style.glowRadius, 0f..36f, "${style.glowRadius.toInt()}") { update(style.copy(glowRadius = it)) }
         }
 
-        SettingGroup("MOTION & PARTICLES") {
-            SettingSlider("Floating speed", style.floatSpeed, 0.35f..2.5f, "${String.format("%.2f", style.floatSpeed)}x") { update(style.copy(floatSpeed = it)) }
-            SettingSlider("Particle count", style.particleCount.toFloat(), 4f..64f, "${style.particleCount}") { update(style.copy(particleCount = it.toInt())) }
-            SettingSlider("Maximum text objects", style.maxObjects.toFloat(), 2f..8f, "${style.maxObjects}") { update(style.copy(maxObjects = it.toInt())) }
-            SettingToggle("Balloon-pop exit", "Burst effect when a text object leaves the screen", style.popEffect) { update(style.copy(popEffect = it)) }
-            SettingToggle("Particle burst", "Emit particles after the pop animation", style.particlesEnabled) { update(style.copy(particlesEnabled = it)) }
-            SettingToggle("Random positioning", "Select a different safe position for each phrase", style.randomPosition) { update(style.copy(randomPosition = it)) }
-            SettingToggle("Collision avoidance", "Try alternate positions when text blocks overlap", style.collisionAvoidance) { update(style.copy(collisionAvoidance = it)) }
-            SettingToggle("Split long lyric lines", "Turn long lines into smaller floating phrases", style.splitLongLines) { update(style.copy(splitLongLines = it)) }
+        SettingGroup("CUSTOM FONT") {
+            Text("Active font: $fontLabel", color = Color.White, fontSize = 11.sp)
+            Text("Import a .ttf or .otf font file from your device.", color = Muted, fontSize = 10.sp)
+            Button(
+                onClick = { fontPicker.launch(arrayOf("font/ttf", "font/otf", "application/octet-stream")) },
+                shape = RoundedCornerShape(11.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PanelSoft, contentColor = Color.White)
+            ) { Text("IMPORT FONT", fontSize = 10.sp, letterSpacing = 0.8.sp) }
+            if (fontMessage.isNotBlank()) Text(fontMessage, color = if (fontMessage.contains("successfully")) Green else Color(0xFFFFB17A), fontSize = 10.sp)
+        }
+
+        SettingGroup("LYRIC ANIMATION") {
+            Text("Choose how each timestamped line enters.", color = Muted, fontSize = 10.sp)
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf("fade" to "FADE", "slide" to "SLIDE", "scale" to "SCALE").forEach { (value, label) ->
+                    val selected = style.animationStyle == value
+                    Box(
+                        Modifier.clip(RoundedCornerShape(9.dp))
+                            .background(if (selected) Cyan.copy(alpha = 0.18f) else PanelSoft)
+                            .border(1.dp, if (selected) Cyan else Color.White.copy(alpha = 0.08f), RoundedCornerShape(9.dp))
+                            .clickable { update(style.copy(animationStyle = value)) }
+                            .padding(horizontal = 15.dp, vertical = 10.dp)
+                    ) { Text(label, color = if (selected) Cyan else Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                }
+            }
+        }
+
+        SettingGroup("PLAYBACK BEHAVIOR") {
             SettingToggle("Hide while music is paused", "Stop displaying lyrics until playback resumes", style.hideOnPause) { update(style.copy(hideOnPause = it)) }
         }
 
