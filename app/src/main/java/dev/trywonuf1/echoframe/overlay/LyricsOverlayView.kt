@@ -178,8 +178,7 @@ class LyricsOverlayView(context: Context) : View(context) {
             .coerceAtLeast(dp(130f).toInt())
 
         textPaint.apply {
-            textSize =
-                style.textSizeSp * resources.displayMetrics.scaledDensity
+            textSize = 24f * resources.displayMetrics.scaledDensity
 
             typeface = android.graphics.Typeface.create(
                 "sans-serif-medium",
@@ -283,7 +282,7 @@ class LyricsOverlayView(context: Context) : View(context) {
             }
 
             textPaint.textSize =
-                style.textSizeSp * resources.displayMetrics.scaledDensity
+                24f * resources.displayMetrics.scaledDensity
 
             textPaint.color = style.textColor
 
