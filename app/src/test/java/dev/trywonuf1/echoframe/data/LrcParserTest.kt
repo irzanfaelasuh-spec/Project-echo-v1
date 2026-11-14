@@ -26,6 +26,16 @@ class LrcParserTest {
         assertEquals(2, LrcParser.indexAt(lines, 9_000))
     }
 
+    @Test fun sortsOutOfOrderTimestampsAndDropsExactDuplicates() {
+        val result = LrcParser.parse("[00:04.00]Later\n[00:01.00]First\n[00:01.00]First")
+        assertEquals(listOf("First", "Later"), result.map { it.text })
+    }
+
+    @Test fun rejectsInvalidSecondsField() {
+        val result = LrcParser.parse("[00:75.00]Invalid\n[00:12.00]Valid")
+        assertEquals(listOf("Valid"), result.map { it.text })
+    }
+
     @Test fun plainLyricsFallbackCreatesMonotonicTimestamps() {
         val lines = LrcParser.estimateFromPlainLyrics("one\ntwo\nthree", 9_000)
         assertEquals(3, lines.size)
