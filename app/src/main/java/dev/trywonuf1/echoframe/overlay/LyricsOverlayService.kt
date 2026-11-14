@@ -133,7 +133,7 @@ class LyricsOverlayService : Service() {
             LayoutParams.FLAG_NOT_FOCUSABLE or
                 LayoutParams.FLAG_NOT_TOUCHABLE or
                 LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                LayoutParams.FLAG_LAYOUT_NO_LIMIT,
+                LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
