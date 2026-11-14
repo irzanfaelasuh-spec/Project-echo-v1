@@ -1,1 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560" role="img" aria-labelledby="title desc">
+  <title id="title">ECHOFRAME — Realtime Floating Lyrics Engine</title>
+  <desc id="desc">A premium dark futuristic banner featuring an abstract luminous audio waveform, orbital rings, and the ECHOFRAME wordmark. No sample lyric phrases.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1728"/>
+      <stop offset=".52" stop-color="#080D18"/>
+      <stop offset="1" stop-color="#17122B"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#58D9F5"/>
+      <stop offset=".52" stop-color="#7D9BFF"/>
+      <stop offset="1" stop-color="#C08BFF"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C5F6FF"/>
+      <stop offset=".48" stop-color="#6BDDF7"/>
+      <stop offset="1" stop-color="#9C8BFF"/>
+    </linearGradient>
+    <radialGradient id="core">
+      <stop offset="0" stop-color="#7CEBFF" stop-opacity=".28"/>
+      <stop offset=".6" stop-color="#7C8DFF" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#7C8DFF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#9FCBFF" stroke-opacity=".055" stroke-width="1"/>
+      <circle cx="0" cy="0" r="1.2" fill="#9FCBFF" fill-opacity=".12"/>
+    </pattern>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="smallGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="clip"><rect width="1440" height="560" rx="30"/></clipPath>
+  </defs>
 
+  <g clip-path="url(#clip)">
+    <rect width="1440" height="560" fill="url(#bg)"/>
+    <rect width="1440" height="560" fill="url(#grid)"/>
+    <circle cx="1080" cy="270" r="290" fill="url(#core)"/>
+
+    <!-- Orbital geometry -->
+    <g transform="translate(1080 276)" fill="none">
+      <circle r="168" stroke="#71DDF7" stroke-opacity=".22" stroke-width="1.5"/>
+      <circle r="132" stroke="#A58EFF" stroke-opacity=".24" stroke-width="1.5" stroke-dasharray="3 12"/>
+      <ellipse rx="238" ry="94" stroke="#70DFF7" stroke-opacity=".48" stroke-width="2" transform="rotate(-28)"/>
+      <ellipse rx="218" ry="112" stroke="#B08CFF" stroke-opacity=".48" stroke-width="2" transform="rotate(34)"/>
+      <ellipse rx="276" ry="70" stroke="#77B8FF" stroke-opacity=".2" stroke-width="1.2" transform="rotate(8)"/>
+      <circle r="76" fill="#101F34" stroke="url(#edge)" stroke-width="2.5" filter="url(#softGlow)"/>
+      <circle r="62" stroke="#C5F6FF" stroke-opacity=".18" stroke-width="1"/>
+    </g>
+
+    <!-- Abstract audio spectrum -->
+    <g transform="translate(1080 276)" stroke="url(#wave)" stroke-linecap="round" filter="url(#smallGlow)">
+      <path d="M-43 0V-15 M-29 0V-30 M-15 0V-43 M0 0V-27 M15 0V-48 M29 0V-31 M43 0V-17" stroke-width="5"/>
+      <path d="M-43 8V19 M-29 8V29 M-15 8V40 M0 8V25 M15 8V46 M29 8V28 M43 8V17" stroke-width="3" opacity=".7"/>
+    </g>
+
+    <!-- Floating signal nodes -->
+    <g fill="#9CEEFF" filter="url(#smallGlow)">
+      <circle cx="1285" cy="112" r="4"/>
+      <circle cx="1320" cy="392" r="3"/>
+      <circle cx="868" cy="116" r="3.5"/>
+      <circle cx="827" cy="368" r="2.5"/>
+      <circle cx="1196" cy="470" r="3"/>
+    </g>
+    <g fill="none" stroke="#9B8DFF" stroke-opacity=".55">
+      <circle cx="1285" cy="112" r="11"/>
+      <circle cx="868" cy="116" r="8"/>
+      <circle cx="1196" cy="470" r="9"/>
+    </g>
+
+    <!-- Brand lockup -->
+    <g font-family="Inter, Segoe UI, Arial, sans-serif">
+      <text x="92" y="116" font-size="15" font-weight="700" fill="#78E4FA" letter-spacing="5">ANDROID PROJECT  /  PHASE 01</text>
+      <text x="86" y="226" font-size="76" font-weight="800" fill="#F2F8FF" letter-spacing="2">ECHOFRAME</text>
+      <rect x="94" y="258" width="390" height="3" rx="1.5" fill="url(#edge)"/>
+      <text x="94" y="310" font-size="24" font-weight="500" fill="#B8C9DE" letter-spacing="2">REALTIME FLOATING LYRICS ENGINE</text>
+      <text x="96" y="386" font-size="15" font-weight="600" fill="#83A0BE" letter-spacing="3">WORDS IN MOTION. MUSIC IN VIEW.</text>
+      <g transform="translate(96 438)">
+        <rect width="190" height="38" rx="19" fill="#13263A" stroke="#4CBEDB" stroke-opacity=".55"/>
+        <circle cx="20" cy="19" r="4" fill="#73E5F7" filter="url(#smallGlow)"/>
+        <text x="36" y="24" font-size="12" font-weight="700" fill="#CDEEFF" letter-spacing="1.5">CREATED BY TRyWonUF1</text>
+      </g>
+    </g>
+
+    <!-- Subtle frame accents -->
+    <path d="M42 90V42H90 M1350 42H1398V90 M42 470V518H90 M1350 518H1398V470"
+          fill="none" stroke="url(#edge)" stroke-opacity=".55" stroke-width="2"/>
+    <path d="M0 535H1440" stroke="#80B9FF" stroke-opacity=".12"/>
+  </g>
+</svg>
