@@ -47,6 +47,8 @@ class LyricsOverlayService : Service() {
     private var lastLineIndex = -1
     private var playbackJob: Job? = null
     private var tickerJob: Job? = null
+    private var lookupJob: Job? = null
+    private var pendingNullJob: Job? = null
 
     private val styleReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -154,36 +156,61 @@ class LyricsOverlayService : Service() {
         playbackJob = serviceScope.launch {
             PlaybackBus.playback.collect { snapshot ->
                 if (snapshot == null) {
-                    EchoRuntime.setTrack("Waiting for a music session")
-                    EchoRuntime.setLyricsStatus("Open Spotify or another music app and play a track")
-                    currentTrackKey = null
-                    currentLines = emptyList()
-                    lastLineIndex = -1
-                    overlayView?.clearAll()
-                    return@collectLatest
+                    // MediaSession metadata can briefly disappear while Android switches sessions.
+                    // Wait before clearing so a transient null does not flash the overlay.
+                    pendingNullJob?.cancel()
+                    pendingNullJob = serviceScope.launch {
+                        delay(1_500L)
+                        if (PlaybackBus.playback.value == null) {
+                            EchoRuntime.setTrack("Waiting for a music session")
+                            EchoRuntime.setLyricsStatus("Open Spotify or another music app and play a track")
+                            currentTrackKey = null
+                            currentLines = emptyList()
+                            lastLineIndex = -1
+                            overlayView?.clearAll()
+                        }
+                    }
+                    return@collect
                 }
 
+                pendingNullJob?.cancel()
+                pendingNullJob = null
                 EchoRuntime.setTrack("${snapshot.title} · ${snapshot.artist}")
                 overlayView?.setPlaying(snapshot.isPlaying)
+
                 if (snapshot.stableTrackKey != currentTrackKey) {
-                    currentTrackKey = snapshot.stableTrackKey
+                    val requestedKey = snapshot.stableTrackKey
+                    currentTrackKey = requestedKey
                     currentLines = emptyList()
                     lastLineIndex = -1
                     overlayView?.clearAll()
+                    lookupJob?.cancel()
                     EchoRuntime.setLyricsStatus("Searching timestamped lyrics…")
-                    val result = repository.findLyrics(
-                        TrackRequest(snapshot.title, snapshot.artist, snapshot.album, snapshot.durationMs)
-                    )
-                    when (result) {
-                        is LyricsResult.Found -> {
-                            currentLines = result.lines
-                            EchoRuntime.setLyricsStatus(
-                                if (result.syncKind == SyncKind.TIMESTAMPED) "Synced lyrics ready" else "Lyrics found · estimated timing"
-                            )
+                    lookupJob = serviceScope.launch {
+                        val result = repository.findLyrics(
+                            TrackRequest(snapshot.title, snapshot.artist, snapshot.album, snapshot.durationMs)
+                        )
+                        // Ignore a slow response if the user has already changed tracks.
+                        if (currentTrackKey != requestedKey ||
+                            PlaybackBus.playback.value?.stableTrackKey != requestedKey
+                        ) return@launch
+
+                        when (result) {
+                            is LyricsResult.Found -> {
+                                currentLines = result.lines.sortedBy { it.timeMs }
+                                lastLineIndex = -1
+                                EchoRuntime.setLyricsStatus(
+                                    if (result.syncKind == SyncKind.TIMESTAMPED) {
+                                        "Synced lyrics ready"
+                                    } else {
+                                        "Lyrics found · estimated timing"
+                                    }
+                                )
+                            }
+                            LyricsResult.Instrumental -> EchoRuntime.setLyricsStatus("Instrumental track · no vocal lyrics")
+                            LyricsResult.NotFound -> EchoRuntime.setLyricsStatus("Lyrics not found for this track")
+                            is LyricsResult.Failed -> EchoRuntime.setLyricsStatus("Lyrics lookup unavailable · ${result.message}")
                         }
-                        LyricsResult.Instrumental -> EchoRuntime.setLyricsStatus("Instrumental track · no vocal lyrics")
-                        LyricsResult.NotFound -> EchoRuntime.setLyricsStatus("Lyrics not found for this track")
-                        is LyricsResult.Failed -> EchoRuntime.setLyricsStatus("Lyrics lookup unavailable · ${result.message}")
                     }
                 }
             }
@@ -193,16 +220,20 @@ class LyricsOverlayService : Service() {
             while (true) {
                 val snapshot = PlaybackBus.playback.value
                 overlayView?.setPlaying(snapshot?.isPlaying == true)
-                if (snapshot != null && currentLines.isNotEmpty() && snapshot.isPlaying) {
+                if (snapshot != null && currentLines.isNotEmpty()) {
                     val index = dev.trywonuf1.echoframe.data.LrcParser.indexAt(
                         currentLines, snapshot.currentPositionMs()
                     )
-                    if (index >= 0 && index != lastLineIndex) {
+                    if (index < 0) {
+                        if (lastLineIndex != -1) overlayView?.clearAll()
+                        lastLineIndex = -1
+                    } else if (index != lastLineIndex) {
+                        // A seek in either direction selects the timestamp currently under the playhead.
                         lastLineIndex = index
                         overlayView?.enqueueLine(currentLines[index].text)
                     }
                 }
-                delay(90L)
+                delay(70L)
             }
         }
     }
@@ -224,6 +255,8 @@ class LyricsOverlayService : Service() {
     override fun onDestroy() {
         playbackJob?.cancel()
         tickerJob?.cancel()
+        lookupJob?.cancel()
+        pendingNullJob?.cancel()
         serviceScope.cancel()
         runCatching { unregisterReceiver(styleReceiver) }
         overlayView?.let { view -> runCatching { windowManager.removeView(view) } }
