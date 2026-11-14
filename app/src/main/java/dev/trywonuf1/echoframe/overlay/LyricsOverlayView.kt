@@ -39,7 +39,7 @@ class LyricsOverlayView(context: Context) : View(context) {
         val lifeMs: Long
     )
 
-    private var style = OverlayStyle.DEFAULT
+    private var style: OverlayStyle = OverlayStyle.DEFAULT
     private val density = resources.displayMetrics.density
     private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG)
     private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -129,7 +129,7 @@ class LyricsOverlayView(context: Context) : View(context) {
     }
 
     private fun trySpawn(text: String, now: Long): Boolean {
-        val maxWidth = (width * 0.78f).toInt().coerceAtLeast(dp(130f))
+        val maxWidth = (width * 0.78f).toInt().coerceAtLeast(dp(130f).toInt())
         val desiredTextWidth = textPaint.apply {
             textSize = style.textSizeSp * resources.displayMetrics.scaledDensity
             typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
