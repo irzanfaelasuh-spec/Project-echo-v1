@@ -34,7 +34,8 @@ class AppPrefs(context: Context) {
         particlesEnabled = prefs.getBoolean(KEY_PARTICLES_ON, true),
         hideOnPause = prefs.getBoolean(KEY_HIDE_PAUSE, false),
         splitLongLines = prefs.getBoolean(KEY_SPLIT, true),
-        maxObjects = prefs.getInt(KEY_MAX_OBJECTS, OverlayStyle.DEFAULT.maxObjects)
+        maxObjects = prefs.getInt(KEY_MAX_OBJECTS, OverlayStyle.DEFAULT.maxObjects),
+        animationStyle = prefs.getString(KEY_ANIMATION, OverlayStyle.DEFAULT.animationStyle) ?: OverlayStyle.DEFAULT.animationStyle
     )
 
     fun saveStyle(style: OverlayStyle) {
@@ -54,6 +55,7 @@ class AppPrefs(context: Context) {
             .putBoolean(KEY_HIDE_PAUSE, style.hideOnPause)
             .putBoolean(KEY_SPLIT, style.splitLongLines)
             .putInt(KEY_MAX_OBJECTS, style.maxObjects)
+            .putString(KEY_ANIMATION, style.animationStyle)
             .apply()
     }
 
@@ -74,6 +76,7 @@ class AppPrefs(context: Context) {
         private const val KEY_HIDE_PAUSE = "hide_on_pause"
         private const val KEY_SPLIT = "split_long_lines"
         private const val KEY_MAX_OBJECTS = "max_objects"
+        private const val KEY_ANIMATION = "animation_style"
 
         fun notifyStyleChanged(context: Context) {
             context.sendBroadcast(Intent(ACTION_STYLE_CHANGED).setPackage(context.packageName))
@@ -96,7 +99,8 @@ data class OverlayStyle(
     val particlesEnabled: Boolean,
     val hideOnPause: Boolean,
     val splitLongLines: Boolean,
-    val maxObjects: Int
+    val maxObjects: Int,
+    val animationStyle: String = "slide"
 ) {
     companion object {
         val DEFAULT = OverlayStyle(
@@ -114,7 +118,8 @@ data class OverlayStyle(
             particlesEnabled = true,
             hideOnPause = false,
             splitLongLines = true,
-            maxObjects = 5
+            maxObjects = 5,
+            animationStyle = "slide"
         )
     }
 }

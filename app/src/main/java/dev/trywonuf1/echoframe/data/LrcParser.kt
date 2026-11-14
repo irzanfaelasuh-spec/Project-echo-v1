@@ -17,6 +17,7 @@ object LrcParser {
             matches.forEach timestampLoop@{ match ->
                 val minutes = match.groupValues[1].toLongOrNull() ?: return@timestampLoop
                 val seconds = match.groupValues[2].toLongOrNull() ?: return@timestampLoop
+                if (seconds !in 0L..59L) return@timestampLoop
                 val fractionRaw = match.groupValues.getOrNull(3).orEmpty()
                 val fractionMs = when (fractionRaw.length) {
                     1 -> (fractionRaw.toLongOrNull() ?: 0L) * 100L
@@ -27,7 +28,7 @@ object LrcParser {
                 parsed += LyricLine((minutes * 60_000L) + (seconds * 1_000L) + fractionMs, text)
             }
         }
-        return parsed.sortedBy { it.timeMs }
+        return parsed.distinctBy { it.timeMs to it.text }.sortedBy { it.timeMs }
     }
 
     fun estimateFromPlainLyrics(plainLyrics: String?, durationMs: Long): List<LyricLine> {
