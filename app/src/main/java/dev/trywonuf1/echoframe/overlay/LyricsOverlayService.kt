@@ -137,8 +137,8 @@ class LyricsOverlayService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            // Keep window opacity below Android's obscuring-touch threshold so game taps pass through.
-            alpha = 0.72f
+            // Keep below Android's 0.8 obscuring-opacity threshold so underlying app taps pass through.
+            alpha = 0.78f
             title = "ECHOFRAME floating lyrics"
         }
         return runCatching {
@@ -221,16 +221,22 @@ class LyricsOverlayService : Service() {
                 val snapshot = PlaybackBus.playback.value
                 overlayView?.setPlaying(snapshot?.isPlaying == true)
                 if (snapshot != null && currentLines.isNotEmpty()) {
-                    val index = dev.trywonuf1.echoframe.data.LrcParser.indexAt(
-                        currentLines, snapshot.currentPositionMs()
-                    )
+                    val positionMs = snapshot.currentPositionMs()
+                    val index = dev.trywonuf1.echoframe.data.LrcParser.indexAt(currentLines, positionMs)
                     if (index < 0) {
                         if (lastLineIndex != -1) overlayView?.clearAll()
                         lastLineIndex = -1
                     } else if (index != lastLineIndex) {
                         // A seek in either direction selects the timestamp currently under the playhead.
                         lastLineIndex = index
-                        overlayView?.enqueueLine(currentLines[index].text)
+                        val currentLine = currentLines[index]
+                        val nextTimestamp = currentLines.getOrNull(index + 1)?.timeMs
+                        val estimatedDuration = if (nextTimestamp != null && nextTimestamp > currentLine.timeMs) {
+                            nextTimestamp - currentLine.timeMs
+                        } else {
+                            4_200L
+                        }
+                        overlayView?.enqueueLine(currentLine.text, estimatedDuration)
                     }
                 }
                 delay(70L)
